@@ -63,20 +63,26 @@ def export_gdoc_to_pdf(gdoc_id, pdf_name, folder_id):
     return f"https://drive.google.com/uc?id={uploaded['id']}&export=download"
 
 # Placeholder replacement with styles
-def replace_placeholders(doc, replacements, styles):
-    for para in doc.paragraphs:
-        for key, val in replacements.items():
-            if key in para.text:
-                for run in para.runs:
-                    if key in run.text:
-                        run.text = run.text.replace(key, val)
-                        style = styles.get(key)
-                        if style:
-                            run.font.name = style['name']
-                            run.font.size = style['size']
-                            run.font.bold = style.get('bold', False)
-                            run.font.italic = style.get('italic', False)
 
+
+def replace_with_preserved_formatting(doc, replacements, style_overrides):
+    def replace_in_runs(runs):
+        for run in runs:
+            for key, value in replacements.items():
+                if key in run.text:
+                    run.text = run.text.replace(key, value)
+                    if key in style_overrides:
+                        run.font.name = style_overrides[key].get('name', run.font.name)
+                        run.font.size = style_overrides[key].get('size', run.font.size)
+
+    for para in doc.paragraphs:
+        replace_in_runs(para.runs)
+
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    replace_in_runs(para.runs)
 # Main function
 def generate_and_upload(details):
     template_path = "final_1.docx"
@@ -124,7 +130,7 @@ def generate_and_upload(details):
     }
 
     doc = Document(template_path)
-    replace_placeholders(doc, replacements, styles)
+    replace_with_preserved_formatting(doc, replacements, styles)
     doc.save(output_docx)
 
     docx_link = upload_file_to_folder(output_docx, "Generated_LOI.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", FOLDER_ID)
