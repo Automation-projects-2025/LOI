@@ -7,6 +7,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload, MediaIoBaseUpload
 import io, os, uuid, base64
+from pydantic import BaseModel
+
 
 app = FastAPI()
 
@@ -134,9 +136,33 @@ def generate_and_upload(details):
         "pdf": pdf_link
     }
 
-# API endpoint
+class LOIDetails(BaseModel):
+    Closer_1_name: str
+    Closer_2_name: str
+    Closer_1_title: str
+    Closer_2_title: str
+    Closer_1_email: str
+    Closer_2_email: str
+    Closer_1_number: str
+    Closer_2_number: str
+    Company_name: str
+    LOI_due_date: str  # format: YYYY-MM-DD
+
 @app.post("/generate/")
-async def generate_loi(request: Request):
-    data = await request.json()
-    result = generate_and_upload(data)
+async def generate_loi(data: LOIDetails):
+    # Convert to dict and restore original keys
+    details = {
+        "Closer 1 name": data.Closer_1_name,
+        "Closer 2 name": data.Closer_2_name,
+        "Closer 1 title": data.Closer_1_title,
+        "Closer 2 title": data.Closer_2_title,
+        "Closer 1 email": data.Closer_1_email,
+        "Closer 2 email": data.Closer_2_email,
+        "Closer 1 number": data.Closer_1_number,
+        "Closer 2 number": data.Closer_2_number,
+        "Company name": data.Company_name,
+        "LOI due date": data.LOI_due_date
+    }
+
+    result = generate_and_upload(details)
     return JSONResponse(content=result)
