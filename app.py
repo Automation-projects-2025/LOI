@@ -6,11 +6,16 @@ import subprocess
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-
+import base64
 app = FastAPI()
 
 UPLOAD_DIR = "temp"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+if not os.path.exists("service_account.json"):
+    encoded_creds = os.getenv("GOOGLE_CREDS_B64")
+    if encoded_creds:
+        with open("service_account.json", "wb") as f:
+            f.write(base64.b64decode(encoded_creds))
 
 # Load credentials from Render Environment Variable
 SERVICE_ACCOUNT_FILE = "service_account.json"
