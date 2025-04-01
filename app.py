@@ -14,12 +14,14 @@ app = FastAPI()
 UPLOAD_DIR = "temp"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Load service account from Render env variable
+
 if not os.path.exists("service_account.json"):
-    creds_b64 = os.getenv("GOOGLE_CREDS_B64")
-    if creds_b64:
+    encoded_creds = os.getenv("GOOGLE_CREDS_B64")
+    if encoded_creds:
         with open("service_account.json", "wb") as f:
-            f.write(base64.b64decode(creds_b64))
+            f.write(base64.b64decode(encoded_creds))
+    else:
+        raise Exception("GOOGLE_CREDS_B64 env var not set or empty!")
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 creds = service_account.Credentials.from_service_account_file("service_account.json", scopes=SCOPES)
