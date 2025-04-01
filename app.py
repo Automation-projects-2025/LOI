@@ -82,7 +82,7 @@ def generate_and_upload(details):
     template_path = "final_1.docx"
     output_docx = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.docx")
 
-    loi_date = datetime.strptime(details['LOI due date'], "%Y-%m-%d")
+    loi_date = datetime.strptime(details['LOI due date'], "%m/%d/%Y")
     replacements = {
         'name_1': details['Closer 1 name'],
         'name_2': details['Closer 2 name'],
